@@ -28,7 +28,7 @@ jobs:
         curl -X PATCH -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
 
     - name: add reject label
-      if: github.event.comment.body == '/reject')
+      if: github.event.comment.body == '/reject'
       env:
         GITHUB_REPOSITORY: ${{ github.repository }}
         ISSUE_PAYLOAD: ${{ toJson(github.event.issue) }}
