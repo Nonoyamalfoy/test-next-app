@@ -12,7 +12,7 @@ on:
 
 jobs:
   label:
-    if: (github.event.issue.pull_request != null) && (github.event.comment.body == '/review' || github.event.comment.body == '/reject')
+    if: (github.event.issue.pull_request != null) && (startsWith(github.event.comment.body, '/review') || startsWith(github.event.comment.body, '/reject'))
     runs-on: ubuntu-latest
 
     steps:
