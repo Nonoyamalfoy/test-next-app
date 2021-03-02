@@ -1,10 +1,10 @@
-name: LGTM action
+name: REVIEW action
 on:
   issue_comment:
     types: [created, edited]
 jobs:
   build:
-    name: LGTM action
+    name: REVIEW action
     runs-on: ubuntu-latest
     steps:
     - name: Run action
@@ -14,6 +14,6 @@ jobs:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["LGTM"]|unique')
+        labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["review"]|unique')
         curl -X PATCH -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
-      if: startsWith(github.event.comment.body, '/lgtm')
+      if: startsWith(github.event.comment.body, '/review')
