@@ -1,11 +1,34 @@
 # ラベルの定義
-labels:
-  - name: "WIP"
-    description: "作業中"
-    color: "d4c5f9"
-  - name: "レビュー待ち"
-    description: "レビュー待ち"
-    color: "bfe5bf"
-  - name: "レビュー修正待ち"
-    description: "指摘事項を修正してください"
-    color: "fef2c0"
+# labels:
+#   - name: "WIP"
+#     description: "作業中"
+#     color: "d4c5f9"
+#   - name: "レビュー待ち"
+#     description: "レビュー待ち"
+#     color: "bfe5bf"
+#   - name: "レビュー修正待ち"
+#     description: "指摘事項を修正してください"
+#     color: "fef2c0"
+
+# # リポジトリ毎のラベル設定
+# repos:
+#   - name: Nonoyamalfoy/test-next-app
+#     # labels で定義したラベルから設定する
+#     labels:
+#       - WIP
+#       - レビュー待ち
+#       - レビュー修正待ち
+
+src:
+- src/**/*
+web:
+- web/**/*
+api:
+- api/**/*
+batch:
+- batch/**/*
+infrastructure:
+- infrastructure/**/*
+cli:
+- cli/**/*
+
