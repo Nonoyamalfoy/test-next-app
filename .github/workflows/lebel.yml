@@ -1,0 +1,39 @@
+# This workflow will triage pull requests and apply a label based on the
+# paths that are modified in the pull request.
+#
+# To use this workflow, you will need to set up a .github/labeler.yml
+# file with configuration.  For more information, see:
+# https://github.com/actions/labeler
+
+name: Labeler
+on:   
+  issue_comment:
+    types: [created]
+
+jobs:
+  label:
+    if: (github.event.issue.pull_request != null) && (github.event.comment.body == '/review' || github.event.comment.body == '/reject')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: add review label
+      if: github.event.comment.body == '/review'
+      env:
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        ISSUE_PAYLOAD: ${{ toJson(github.event.issue) }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["review"]|unique')
+        curl -X PATCH -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
+
+    - name: add reject label
+      if: github.event.comment.body == '/reject')
+      env:
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        ISSUE_PAYLOAD: ${{ toJson(github.event.issue) }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["reject"]|unique')
+        curl -X PATCH -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
