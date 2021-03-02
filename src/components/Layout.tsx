@@ -7,7 +7,7 @@ type Props = {
   title?: string
 }
 
-const Layout = ({ children, title = 'Title c' }: Props) => (
+const Layout = ({ children, title = 'Title d' }: Props) => (
   <div>
     <Head>
       <title>{title}</title>
