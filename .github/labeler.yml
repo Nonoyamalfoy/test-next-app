@@ -9,12 +9,3 @@ labels:
   - name: "レビュー修正待ち"
     description: "指摘事項を修正してください"
     color: "fef2c0"
-
-# リポジトリ毎のラベル設定
-repos:
-  - name: Nonoyamalfoy/test-next-app
-    # labels で定義したラベルから設定する
-    labels:
-      - WIP
-      - レビュー待ち
-      - レビュー修正待ち
