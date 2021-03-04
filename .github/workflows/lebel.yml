@@ -9,6 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: removelabel
+      uses: buildsville/add-remove-label@v1
+      with:
+        token: ${{secrets.GITHUB_TOKEN}}
+        type: remove
+        
     - name: add review label
       if: github.event.comment.body == '/review'
       env:
@@ -17,10 +23,8 @@ jobs:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        add_labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["review"]|unique')
-        remove_labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["reject"]|unique')
-        curl -X PATCH -d '{"labels": '${add_labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
-        curl -X DELETE -d '{"labels": '${remove_labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
+        labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["review"]|unique')
+        curl -X PATCH -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
 
     - name: add reject label
       if: github.event.comment.body == '/reject'
