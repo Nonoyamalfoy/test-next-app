@@ -19,6 +19,9 @@ jobs:
       run: |
         labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["review"]|unique')
         curl -X POST -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
+
+    - name: remove review label  
+      if: github.event.comment.body == '/review'
       uses: buildsville/add-remove-label@v1
       with:
         token: ${{secrets.GITHUB_TOKEN}}
@@ -36,6 +39,9 @@ jobs:
         labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["reject"]|unique')
         curl -X POST -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}
       uses: buildsville/add-remove-label@v1
+      
+    - name: remove review label  
+      if: github.event.comment.body == '/reject'
       with:
         token: ${{secrets.GITHUB_TOKEN}}
         label: review
