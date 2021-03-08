@@ -17,8 +17,7 @@ jobs:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["Review"]|unique')
-        curl -X PUT -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/labels
+        curl -X PUT -d '{"labels": ["Review"]}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/labels
 
     - name: add reject label
       if: github.event.comment.body == '/reject'
@@ -28,5 +27,4 @@ jobs:
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        labels=$(echo "${ISSUE_PAYLOAD}" | jq '.labels[]|.name' | jq -s . | jq -c '.|.+["Reject"]|unique')
-        curl -X PUT -d '{"labels": '${labels}'}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/labels
+        curl -X PUT -d '{"labels": ["Reject"]}' -H "Authorization: token ${GITHUB_TOKEN}" https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}/labels
