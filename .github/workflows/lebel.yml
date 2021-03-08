@@ -13,7 +13,6 @@ jobs:
       if: github.event.comment.body == '/review'
       env:
         GITHUB_REPOSITORY: ${{ github.repository }}
-        ISSUE_PAYLOAD: ${{ toJson(github.event.issue) }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -23,7 +22,6 @@ jobs:
       if: github.event.comment.body == '/reject'
       env:
         GITHUB_REPOSITORY: ${{ github.repository }}
-        ISSUE_PAYLOAD: ${{ toJson(github.event.issue) }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
