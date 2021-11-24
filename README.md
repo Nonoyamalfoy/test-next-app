@@ -1,41 +1,253 @@
-# TypeScript Next.js example
+# 今月のトピック
 
-This is a really simple project that shows the usage of Next.js with TypeScript.
+## Home画面でローディングできるように(#1037)
+タレントがより多くのおすすめ求人を閲覧し、自分にあった求人に出会うための施策。  
+今まではおすすめ求人を20表示できなかったが、この実装により最大100件まで表示できるようになった。  
 
-## Deploy your own
+FlatListを利用して下部に達した際に、次の20件を取得するように実装。  
+ListHeaderやPlaceHolderViewなど、コンポーネントを整理した上で実装。  
+（ロジックの整理をしだすときりがないので一旦コンポーネントの整理にとどめた。）  
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example):
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-typescript&project-name=with-typescript&repository-name=with-typescript)
+## 求人前提条件実装(#1114)
+マッチングする上で希望金額・希望時間を知らなければミスマッチが生じてしまう可能性がある。  
+こうした課題に対する解決策としてエントリー時に希望金額や時間を入力できるよう実装。　　
 
-## How to use it?
+リファクタリングをしたこともあり、実装自体にさほど実装の工数はかからなかったが、デザインはもちろん、仕様を合わせる必要がありタレントwebとのコミュニケーションが必要な実装であった。  
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
-
-```bash
-npx create-next-app --example with-typescript with-typescript-app
-# or
-yarn create next-app --example with-typescript with-typescript-app
+*希望金額の初期値ロジック*  
+```
+・特に連携を取る必要があり、QAを入念に行った。  
+・ヒラマサの実装したロジックを読み込み、github上でコメントをした。  
+(それを踏まえて自身でロジックを作成しコメントした。https://github.com/anotherworks/FC_Cloud/pull/1118)  
+・デザイナー（kimさん）と積極的にコミュニケーションを取るようにした。  
 ```
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
 
-## Notes
-
-This example shows how to integrate the TypeScript type system into Next.js. Since TypeScript is supported out of the box with Next.js, all we have to do is to install TypeScript.
-
+## 求人詳細ページリファクタリング(#1068)
 ```
-npm install --save-dev typescript
+・エントリー取り消し機能  
+・前提条件入力フォーム  
+・遷移時に先に持っている情報を表示する（予定）  
+```
+以上のように、初期実装の頃と比較して機能が増えてきており、複雑になったため、今回の「前提条件」を含め今後の機能追加のためにリファクタリングしておく必要があると考え前提条件実装の前に着手。
+
+### 構成
+```
+MemberProjectDetailScreen
+├── AboutEntryModal
+├── ActiveProjectFooter
+├── ArchivedProjectFooter
+├── FormProjectFooter（前提条件実装時に追加）
+├── NotFoundProjectContent
+├── ProjectDetailConteint
+├── ProjectFooter
+├── SuspendedProjectScreen
+├── hooks.ts
+├── index.tsx
+├── presenter.tsx
+└── types.tsx
 ```
 
-To enable TypeScript's features, we install the type declarations for React and Node.
 
+以下の理由から、Footer部分が複雑になると考え、ProjectFooterとして切り出し、更にProjectFooter内で以下の3つに分けた。  
 ```
-npm install --save-dev @types/react @types/react-dom @types/node
+・エントリー取り消し、前提条件入力フォームはどちらもFooterでロジックを管理している。  
+・Footerにアニメーションを実装していく予定なのでアニメーションのロジックもFooter内に閉じ込めたい。  
 ```
 
-When we run `next dev` the next time, Next.js will start looking for any `.ts` or `.tsx` files in our project and builds it. It even automatically creates a `tsconfig.json` file for our project with the recommended settings.
+各ファイル説明
+```
+ActiveProjectFooter：通常の「エントリー」と「♡」ボタンのあるFooter  
+ArchivedProjectFooter:「募集終了しました」ボタンのあるFooter（statusがarchiveのときに表示される）  
+FormProjectFootre：前提条件を入力するためのFooter  
+```
 
-Next.js has built-in TypeScript declarations, so we'll get autocompletion for Next.js' modules straight away.
+また以下の理由から、エントリーやエントリー取り消し、前提条件フォームのState管理は親であるProjectFooterで管理している。
+```
+・エントリー取り消しのSnackbirdはの表示はActiveProjectFooter、エントリーの関数はFormProjectFooterで叩く必要がある。  
+・stateとstate変更が別のコンポーネントになるので親で管理する必要がある
+```
 
-A `type-check` script is also added to `package.json`, which runs TypeScript's `tsc` CLI in `noEmit` mode to run type-checking separately. You can then include this, for example, in your `test` scripts.
+詳細内容はProjectDetailContentで表示している。
+→ProjectDetailScreenでは大きく分けて、ProjectDetailContentとProjectFooterを呼び出している。
+
+
+
+## 単価相場表の実装(#1116)
+自分の相場感がわからないと、エントリーしづらい。といった要件のもと実装。　　
+
+wabviewにて実装を行ったが、androidでpdfをwebveiwで表示することができない問題に直面（OSの問題らしい）　　
+solutionとしては指定したURLの文書ファイルを変換し、ウェブブラザ上から閲覧可能にするサービスであるgoogleドキュメントビューアを利用して対応。　　
+
+
+
+## メッセージをコピーできるように（#1162） 
+アプリの場合メッセージがコピーできず、困る時がある。といった意見ががタレントインタビューなどで上がっていた。
+ex)企業から送られてきたURLをカレンダーに貼りたい。面談時にzooomのpasswordをコピーしたい等。　
+
+solutionとしてはメッセージを長押しした際にActionSheetを表示し、コピーを選択できるように実装。　　
+
+
+## メッセージ詳細リファクタリング（#1127）
+メッセージコピーを実装するにあたって、スムーズに行えるよう着手。
+今後ActionSheetでの機能が増えてもすぐに実装できる。
+androidでメッセーじページの動作が遅いと言われたこともあり、メッセージのページネーションを検討しているため、今回リファクタリングを行った。
+
+構成
+```
+MemberMessageDetailScreen
+├── MessageDetailHeader
+├── MessageDetailTextInput
+├── MessageItem
+├── MessageLitemLIst
+├── MessageItemListHeader
+├── SpeechBubbleMine
+├── SpeechBubbleOtherPerson
+├── hooks.ts
+├── index.tsx
+├── presenter.tsx
+└── types.tsx
+```
+
+・機能していないロジックを削除してパフォーマンスを向上した。（無駄にmapされていた）  
+・それぞれのコンポーネントで責務を持たせるような実装を意識。 
+ex)SpeechBubble内にメッセージ削除やコピーのロジックを記述するように実装。　　
+→親にロジックを集中させると複雑になるのでなるべく責務を分担したかったから。 
+
+ 
+## AppsFlyer sdk実装/オプトインダイアログの表示
+外部からのる流入に対する広告計測のためAppsFlyerというミドルウェアを導入。  
+前スプリントで調査と見積もりを完了していたためスプリント4では実装から入った。  
+
+調査結果からAppsFlyerの導入はトラッキングに該当するのでオプトインダイアログを表示して許可を得るように実装。（ios）  
+ダイアログの表示にはreact-native-permissionsを使用。  
+
+## Android : hermesの導入（#1177） 
+タレントインタビューでも上がっているAndroidのパフォーマンスの問題に対するsolutionの一つ。  
+javascriptのエンジンをjavascriptCoreからhermesに変更。  
+前々から存在は知っていたが、ejectもしくはeasbuildを利用する必要があったが、先月末にejectが完了したため、実装可能となり着手に至った。  
+
+*実際に以下の恩恵が得られた。*   
+```
+・初期起動時間が6秒程度から→3秒程度に(端末によって異なる場合あり)  
+→起動からhome画面に遷移するまでの時間を計測  
+・ファイルサイズが53MB→45MB  
+・全体的にパフォーマンスが向上  
+```
+
+
+## 業務委託の方マネジメント/コードレビュー  
+・業務委託とはいえ正社員として入る予定であるため、プロジェクトに慣れることが大切だと思い、全体的に  
+・「DropdownAtomの廃止」タスクでは最初ということもあり一つだけ実装してpullRequestを渡すなど工夫を行った。  
+→https://github.com/anotherworks/FC_Cloud/pull/1055  
+・自分の作成したReadmeを見ながらミヤゾンさんに実際に環境構築してもらい、Readmeの内容をより良いものにして迎え入れた。  
+・1on1の実施
+
+
+
+
+## その他
+
+### 一つのタスクに対してQAの時間をしっかりとっている
+自分はコードレビューをしてもらっていないので個人的にQAの時間を大幅に設け、androidでの確認も必ずするようにしている。　　
+→nativeの変更があったときなどはbuildし直す必要があったり、初回起動が遅かったり意外と面倒です。　　
+検証に上げたものは実際に差し戻しは一つもなく、QAも比較的少ない。　　
+
+### 前日にビルドを作成し、DeployGateにUpload。notionにテストケースを書くようにしている
+→特に月曜日はお休みしているので自分がいなくてもQAできるよう前日書くことを心がけた。　　
+
+### バージョン履歴テキストの作成
+今月からバージョン履歴のテキストも担当し、ほぼすべてのリリースフローを任せていただだいた。
+一部の人は見ており、履歴がしっかり書いてあると好印象を与えることができると思っている。
+
+### ２Qお疲れ様会＆jumpヒラマサの歓迎会幹事
+みんな楽しんでくれたと思っています、、、笑　　
+
+
+
+
+
+
+# 今月おこなった実装まとめ
+
+## 10/4リリース
+https://github.com/anotherworks/FC_Cloud/pull/900  
+## ColojjrStyleの実装（#948、#1022）　　
+Colorの定義をlandScapeで定義されているものに合わせる。  
+粒度が低いものから進めていくのが良いと判断し、早めに着手。  
+
+### 未読のメッセージがあるときバッジを表示する（#902）　　
+
+### 特集求人のスタイル修正（#907）　　
+→androidにおいて特集求人ページのヘッダースタイルが崩れていたのを修正　　
+
+### RouteModalの配置を修正（#929）　　
+マッチングブーストのときに苦肉の策でBottomTabにRouteModlをおいていたが、MemberRouteStackにおいたほうがわかりやすいと判断し配置を変えた。　　
+
+### プロフィール編集で保存できないときに「保存」がPrimaryになっているのでdisableにする（#940）　　
+
+### 経験企業の入力保存ボタンを押した際に情報の表示が消える （#945）  
+
+### publicScreenのキニナルUIを修正（#946）  
+
+### 求人名をタップした際に求人詳細に遷移するように（#952）  
+
+### マッチングブースト文言修正（#959）  　　
+
+## 11/10リリース　　
+https://github.com/anotherworks/FC_Cloud/pull/973  
+### 担当者関連のページを削除（#983）  
+
+### 業務ジャンルの表示（#990）　　
+
+### ログアウト時にreduxのstateを初期化する（#1015）　　
+
+### AppsFlyer導入（#1012）
+
+### 企業詳細：会社情報の下部に空白が存在する（#1049）　　
+
+
+## 11/17リリース　　
+https://github.com/anotherworks/FC_Cloud/pull/1056  
+### Home画面で無限スクロールを実装（#1037）  
+
+### uiParts；checkboxの作成（#1087）　　
+→前提条件実装の際にChrckBoxが存在したため、さほど時間はかからないと判断し実装。  
+
+### 画像登録した際にクラッシュする場合がある（#1138　
+画像がうまく取得できなかったときに再現する可能性が高い。   
+resultがundefindeの場合、lorderを非表示にし、処理を停止するよう修正。  
+
+## 11/24リリース
+https://github.com/anotherworks/FC_Cloud/pull/1226　　
+### 単価相場表の実装（#1116）　　
+
+### メッセージ詳細リファクタリング（#1127）  
+ 
+### メッセージをコピーできるように（#1119）  
+
+### android：OS標準のバックボタンを押したときにfocusが適切に移動するように（#1175）  　　
+
+### 担当業務の内容をフリーテキストに（#1176）  　　
+
+### Androidアカウント削除時にローディングが回り続ける（#1181）  
+cognitoを利用しているUserがアカウント削除した際、firebaseのdeleteメソッドを叩こうとしており、エラーが発生していた。  
+cognito認証の場合はfilebaseのメソッドを叩かないようにして対応  
+
+### エントリー時に求人前提条件を入力させる（#1114）  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
